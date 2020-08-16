@@ -7,13 +7,14 @@
 
 (def <sub (comp deref subscribe))
 
-(defn num-input [{:keys [orig-val on-save on-stop]}] 
-  (let [val  (reagent/atom orig-val)
-        stop #(do (reset! val orig-val) 
-                  (when on-stop (on-stop))) 
-        save #(let [v @val]
-                (on-save v)
-                (stop))] 
+; Numeric input: saves on blur or pressing enter. press escape to revert to last saved value
+(defn num-input [{:keys [value on-save on-stop]}] 
+  (let [val  (reagent/atom value)
+        prev-val (reagent/atom value)
+        stop #(do (reset! val @prev-val) 
+                  (when on-stop (on-stop)))
+        save #(do (reset! prev-val @val)
+                  (on-save @val))]
     (fn [props] 
       [:input.input (merge (dissoc props :on-save :on-stop :orig-val)
                      {:type        "number"
@@ -26,23 +27,24 @@
                                       27 (stop)
                                       nil)})])))
 
-(defn arm-row
-  [index]
-  (let [id (<sub [::subs/arm-id index])
-        reward-prob (<sub [::subs/arm-reward-prob index])
-        alpha (<sub [::subs/arm-alpha index])
-        beta (<sub [::subs/arm-beta index])
-        times-selected (<sub [::subs/arm-times-selected index])
-        reward (<sub [::subs/arm-reward index])]
+(defn row
+  [arm]
+  (let [id (:id arm)
+        reward-prob (:reward-prob arm)
+        alpha (:alpha arm)
+        beta (:beta arm)
+        times-selected (:times-selected arm)
+        reward (:reward arm)]
     [:tr
      [:th (inc id)]
-     [:td [num-input {:orig-val reward-prob :on-save #(dispatch [::events/set-arm-reward-prob id %])}]]
-     [:td [num-input {:orig-val alpha :on-save #(dispatch [::events/set-arm-alpha id %])}]]
-     [:td [num-input {:orig-val beta :on-save #(dispatch [::events/set-arm-beta id %])}]]
+     [:td [num-input {:value reward-prob :on-save #(dispatch [::events/set-arm-reward-prob id %])}]]
+     [:td alpha]
+     [:td beta]
      [:td times-selected]
      [:td reward]]))
 
-(defn main-panel []
+(defn main-table
+  []
   [:table.table.has-text-centered.is-fullwidth
    [:thead
     [:tr
@@ -53,6 +55,17 @@
      [:th "Times Selected"]
      [:th "Cumulative Reward"]]]
    [:tbody
-    (for [idx (range (<sub [::subs/num-arms]))]
-      ^{:key idx} [arm-row idx])]])
+    (for [arm (<sub [::subs/arms])]
+      ^{:key (:id arm)} [row arm])]])
+
+(defn control-button
+  []
+  [:button.button.is-primary
+   {:on-click #(dispatch [::events/tick])}
+   "Step"])
+
+(defn main-panel []
+  [:div.container
+   [main-table]
+   [control-button]])
 

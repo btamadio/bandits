@@ -1,6 +1,7 @@
 {
 	"name": "bandits",
 	"dependencies": {
+		"jstat": "1.9.3",
 		"react": "16.13.0",
 		"react-dom": "16.13.0"
 	},

@@ -8,5 +8,5 @@
           {:id 2 :reward-prob 0.5 :alpha 1 :beta 1 :times-selected 0 :reward 0}]
    :samples []
    :selected-arm nil
-   :simulated-reward nil})
+   :reward? nil})
 
