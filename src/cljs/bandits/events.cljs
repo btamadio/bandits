@@ -1,6 +1,11 @@
 (ns bandits.events
   (:require
-   [re-frame.core :refer [reg-event-db reg-cofx inject-cofx]]
+   [re-frame.core :refer [reg-event-db
+                          reg-event-fx
+                          reg-cofx
+                          reg-fx
+                          inject-cofx
+                          dispatch]]
    [bandits.db :as db]
    ["jstat" :as jstat]))
 
@@ -69,3 +74,46 @@
          (update-in [:arms arm-id :times-selected] inc)
          (update-in [:arms arm-id :reward] (if reward? inc identity))))))
 
+(def registered-keys (atom nil))
+
+(reg-fx
+ ::dispatch-interval
+ (fn [{:keys [:event :ms :id]}]
+   (let [interval-id (js/setInterval #(dispatch event) ms)]
+     (swap! registered-keys assoc id interval-id))))
+
+(reg-fx
+ ::clear-interval
+ (fn [{:keys [:id]}]
+   (when-let [interval-id (get @registered-keys id)]
+     (js/clearInterval interval-id)
+     (swap! registered-keys dissoc id))))
+
+(reg-event-fx
+ ::start-sim
+ (fn [cofx _]
+   (let [db (:db cofx)]
+     {:db (assoc db :state :running)
+      ::dispatch-interval {:event [::tick]
+                           :id :ticker
+                           :ms 1000}})))
+
+(reg-event-fx
+ ::pause-sim
+ (fn [cofx _]
+   (let [db (:db cofx)]
+     {:db (assoc db :state :paused)
+      ::clear-interval {:id :ticker}})))
+
+(defn reset-arm
+  [arm]
+  (-> arm
+      (assoc :alpha 1)
+      (assoc :beta 1)
+      (assoc :times-selected 0)
+      (assoc :reward 0)))
+
+(reg-event-db
+ ::reset-sim
+ (fn [db _]
+   (update-in db [:arms] #(into [] (map reset-arm) %))))

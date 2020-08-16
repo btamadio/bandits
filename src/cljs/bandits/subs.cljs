@@ -7,7 +7,10 @@
  (fn [db]
    (:stage db)))
 
-
+(re-frame/reg-sub
+ ::state
+ (fn [db]
+   (:state db)))
 
 (re-frame/reg-sub
  ::method

@@ -1,6 +1,6 @@
 (ns bandits.views
   (:require
-   [re-frame.core :refer [subscribe dispatch]]
+   [re-frame.core :refer [subscribe dispatch dispatch-sync]]
    [reagent.core :as reagent]
    [bandits.subs :as subs]
    [bandits.events :as events]))
@@ -60,12 +60,29 @@
 
 (defn control-button
   []
-  [:button.button.is-primary
-   {:on-click #(dispatch [::events/tick])}
-   "Step"])
+  (let [state (<sub [::subs/state])]
+    [:button.button.is-primary {:on-click #(dispatch [::events/start-sim])
+                                :disabled (= state :running)}
+     "Start"]))
+
+(defn pause-button
+  []
+  (let [state (<sub [::subs/state])]
+    [:button.button.is-warning {:on-click #(dispatch [::events/pause-sim])
+                                :disabled (= state :paused)}
+     "Pause"]))
+
+(defn reset-button
+  []
+  (let [state (<sub [::subs/state])]
+    [:button.button.is-danger {:on-click #(dispatch-sync [::events/reset-sim])}
+     "Reset"]))
 
 (defn main-panel []
   [:div.container
    [main-table]
-   [control-button]])
+   [:div.buttons
+    [control-button]
+    [pause-button]
+    [reset-button]]])
 
