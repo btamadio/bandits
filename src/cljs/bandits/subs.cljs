@@ -3,11 +3,6 @@
    [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
- ::has-started?
- (fn [db]
-   (:has-started? db)))
-
-(reg-sub
  ::state
  (fn [db]
    (:state db)))

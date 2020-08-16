@@ -93,9 +93,7 @@
  ::start-sim
  (fn [cofx _]
    (let [db (:db cofx)]
-     {:db (-> db
-              (assoc :state :running)
-              (assoc :has-started? true))
+     {:db (assoc db :state :running)
       ::dispatch-interval {:event [::tick]
                            :id :ticker
                            :ms 1000}})))
@@ -115,9 +113,9 @@
       (assoc :times-selected 0)
       (assoc :reward 0)))
 
-(reg-event-db
+(reg-event-fx
  ::reset-sim
- (fn [db _]
-   (-> db
-       (update-in [:arms] #(into [] (map reset-arm) %))
-       (assoc :has-started? false))))
+ (fn [cofx _]
+   (let [db (:db cofx)]
+     {:db (update-in db [:arms] #(into [] (map reset-arm) %))
+      :dispatch [::pause-sim]})))

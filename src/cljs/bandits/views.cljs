@@ -18,7 +18,7 @@
     (fn [props] 
       [:input.input.has-text-centered (merge (dissoc props :on-save :on-stop :orig-val)
                      {:type        "number"
-                      :read-only   (<sub [::subs/has-started?])
+                      :disabled (= (<sub [::subs/state]) :running)
                       :value       @val
                       :auto-focus  true
                       :on-blur     save
