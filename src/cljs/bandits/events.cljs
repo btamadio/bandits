@@ -40,10 +40,10 @@
          samples (map draw-from-beta arms)]
      (assoc-in coeffects [:db :samples] (into [] samples)))))
 
-; gets argmax (returns highest index on tie)
+; (beware: always returns max index on tie)
 (defn argmax
-  [x]
-  (first (apply max-key second (map vector (range) x))))
+  [coll]
+  (first (apply max-key second (map vector (range) coll))))
 
 (reg-cofx
  ::select-arm
