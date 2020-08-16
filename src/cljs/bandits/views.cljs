@@ -16,8 +16,9 @@
         save #(do (reset! prev-val @val)
                   (on-save @val))]
     (fn [props] 
-      [:input.input (merge (dissoc props :on-save :on-stop :orig-val)
+      [:input.input.has-text-centered (merge (dissoc props :on-save :on-stop :orig-val)
                      {:type        "number"
+                      :read-only   (<sub [::subs/has-started?])
                       :value       @val
                       :auto-focus  true
                       :on-blur     save
@@ -34,8 +35,10 @@
         alpha (:alpha arm)
         beta (:beta arm)
         times-selected (:times-selected arm)
-        reward (:reward arm)]
+        reward (:reward arm)
+        selected? (= id (<sub [::subs/selected-arm]))]
     [:tr
+     (when selected? {:class "is-selected"})
      [:th (inc id)]
      [:td [num-input {:value reward-prob :on-save #(dispatch [::events/set-arm-reward-prob id %])}]]
      [:td alpha]
@@ -54,6 +57,14 @@
      [:th "beta"]
      [:th "Times Selected"]
      [:th "Cumulative Reward"]]]
+   [:tfoot
+    [:tr
+     [:th "Totals"]
+     [:td]
+     [:td]
+     [:td]
+     [:td (<sub [::subs/time-step])]
+     [:td (<sub [::subs/total-reward])]]]
    [:tbody
     (for [arm (<sub [::subs/arms])]
       ^{:key (:id arm)} [row arm])]])
